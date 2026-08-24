@@ -1,0 +1,48 @@
+name: Logistics MLOps CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main", "master" ]
+
+jobs:
+  mlops-ci:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. Checkout mã nguồn từ kho lưu trữ
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    # 2. Thiết lập môi trường Python
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+        cache: 'pip'
+
+    # 3. Cài đặt dependencies
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    # 4. Kiểm tra chất lượng code (Linting với Flake8)
+    - name: Lint code with flake8
+      run: |
+        # Dừng build nếu có lỗi cú pháp nghiêm trọng
+        flake8 app_eta.py --count --select=E9,F63,F7,F82 --show-source --statistics
+
+    # 5. Build Docker Image cho hệ thống ETA
+    - name: Build Docker image
+      run: |
+        docker build -t logistics-eta-api:${{ github.sha }} .
+
+    # 6. Quét lỗ hổng bảo mật Container Image với Trivy (Tiêu chuẩn DevSecOps)
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: 'logistics-eta-api:${{ github.sha }}'
+        format: 'table'
+        exit-code: '0'
+        severity: 'CRITICAL,HIGH'

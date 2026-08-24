@@ -1,0 +1,7 @@
+@"
+__pycache__/
+*.pyc
+mlruns/
+mlflow.db
+.env
+"@ | Out-File -Encoding utf8 .gitignore
