@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # 1. Checkout mã nguồn từ kho lưu trữ
+    # 1. Checkout mã nguồn
     - name: Checkout code
       uses: actions/checkout@v4
 
@@ -24,21 +24,25 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install flake8
+        pip install flake8 mlflow scikit-learn pandas numpy fastapi uvicorn pydantic
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-    # 4. Kiểm tra chất lượng code (Linting với Flake8)
+    # 4. Kiểm tra chất lượng code (Linting)
     - name: Lint code with flake8
       run: |
-        # Dừng build nếu có lỗi cú pháp nghiêm trọng
-        flake8 app_eta.py --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 app_eta.py train_eta.py --count --select=E9,F63,F7,F82 --show-source --statistics
 
-    # 5. Build Docker Image cho hệ thống ETA
+    # 5. [MLOps Best Practice] Tự động chạy train trong CI để sinh ra Model Artifact (mlruns/) trước khi đóng gói
+    - name: Run automated model training
+      run: |
+        python train_eta.py
+
+    # 6. Build Docker Image (Lúc này thư mục mlruns/ đã được sinh ra tự động)
     - name: Build Docker image
       run: |
         docker build -t logistics-eta-api:${{ github.sha }} .
 
-    # 6. Quét lỗ hổng bảo mật Container Image với Trivy (Tiêu chuẩn DevSecOps)
+    # 7. Quét lỗ hổng bảo mật Container Image với Trivy
     - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@master
       with:

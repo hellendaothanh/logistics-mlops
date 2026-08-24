@@ -1,7 +1,36 @@
-@"
+# --- Python ---
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+
+# --- Virtual Environments ---
+.env
+.venv
+env/
+venv/
+
+# --- MLOps: MLflow & Artifacts ---
+# Không đẩy lịch sử train local và database lên Git
 mlruns/
 mlflow.db
-.env
-"@ | Out-File -Encoding utf8 .gitignore
+*.sqlite
+
+# --- IDE & OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
